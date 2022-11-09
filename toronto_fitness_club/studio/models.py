@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 from django.db.models import ImageField
 
-
+# have to migrate models
 class Image(models.Model):
     image = models.ImageField(
         upload_to='studio_images')  # stores it in a file called studio images?
