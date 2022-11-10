@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
-from toronto_fitness_club.studio.models import Studio
-
+from studio.models import Studio
 
 class CreateStudioSerializer(serializers.ModelSerializer):
     class Meta:
