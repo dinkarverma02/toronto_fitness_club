@@ -21,4 +21,4 @@ class CreateClassesView(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CreateClassesSerializer
 
-
+# class
