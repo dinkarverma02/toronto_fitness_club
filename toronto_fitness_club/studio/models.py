@@ -28,8 +28,10 @@ class Studio(models.Model):
 
 class Image(models.Model):
     #studio = models.ForeignKey(Studio, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='studio_images/')
-    studios = ForeignKey(to=Studio, on_delete=CASCADE)
+    # need to fix model as can't edit after upload
+    image = models.FileField(upload_to='studio_images/', null=True, blank=True)
+    studios = ForeignKey(to=Studio, related_name= 'images', on_delete=CASCADE)
+    objects = models.Manager()
     # stores it in a file called studio images?
 
 
