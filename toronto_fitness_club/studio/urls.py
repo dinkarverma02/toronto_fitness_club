@@ -7,3 +7,5 @@ app_name = 'Studio'
 urlpatterns = [
     path('new/', CreateStudioView.as_view()),
 ]
+
+# edit studio depends on studio id
