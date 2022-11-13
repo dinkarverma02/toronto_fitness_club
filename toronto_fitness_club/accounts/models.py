@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.contrib.auth.models import (UserManager, AbstractBaseUser)
+from django.contrib.auth.models import UserManager, AbstractBaseUser, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 import jwt
 
@@ -50,11 +50,17 @@ class MyUserManager(UserManager):
         #     raise ValueError('Superuser must have is_staff=True.')
         # if extra_fields.get('is_superuser') is not True:
         #     raise ValueError('Superuser must have is_superuser=True.')
+        user = self._create_user(first_name, last_name, username, email, password, password2, phone_number, avatar, **extra_fields)
 
-        return self._create_user(first_name, last_name, username, email, password, password2, phone_number, avatar, **extra_fields)
+        # give access to admin panel
+        user.is_staff = True
+        user.is_admin = True
+        user.is_superuser = True
+        user.save(using=self._db)
+        return user
 
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, PermissionsMixin):
     """
     An abstract base class implementing a fully featured User model with
     admin-compliant permissions.
@@ -68,6 +74,11 @@ class User(AbstractBaseUser):
     password2 = models.CharField(_("password2"), default='', blank=False, max_length=200)
     phone_number = models.CharField(_("phone_number"), blank=False, max_length=200)
     avatar = models.ImageField(_("avatar"), upload_to='avatars', blank=False, default='')
+
+    # fields necessary for admin access
+    is_admin = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
 
     objects = MyUserManager()
 

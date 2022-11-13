@@ -43,6 +43,9 @@ class LoginAPIView(APIView):
 
         # authenticate access to specified User's attributes
         user = authenticate(username=username, password=password)
+        print(user.is_staff)
+        print(user.is_superuser)
+        print(user.is_admin)
 
         if user:
             serializer = self.serializer_class(user)
