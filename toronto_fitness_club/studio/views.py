@@ -1,3 +1,4 @@
+
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -11,34 +12,11 @@ from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 
 # username: thaksha password: water
+from rest_framework.response import Response
+from rest_framework.utils import json
 from rest_framework.views import APIView
 
 from studio.models import Studio
-from studio.serializers import ImageSerializer, StudioSerializer
 
 
-class CreateStudioView(CreateAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = StudioSerializer
 
-
-class EditStudioView(RetrieveAPIView, UpdateAPIView):
-    serializer_class = StudioSerializer
-
-    def get_object(self):
-        return get_object_or_404(Studio, id=self.kwargs['studio_id'])
-
-
-class DeleteStudio(RetrieveAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = StudioSerializer
-
-    def get_object(self):
-        return get_object_or_404(Studio, id=self.kwargs['studio_id'])
-
-    def delete(self, request, *args, **kwargs):
-        studio = Studio.objects.get(id=self.kwargs['studio_id'])
-        studio.delete()
-        # should do something else instead of returning a http response
-        # front end user will have a list of their studios
-        return HttpResponse('studio deleted', status=200)

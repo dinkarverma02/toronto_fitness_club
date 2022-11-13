@@ -27,22 +27,21 @@ class Studio(models.Model):
     objects = models.Manager()
 
 class Image(models.Model):
-    #studio = models.ForeignKey(Studio, on_delete=models.CASCADE)
-    # need to fix model as can't edit after upload
+
     image = models.FileField(upload_to='studio_images/', null=True, blank=True)
     studios = ForeignKey(to=Studio, related_name= 'images', on_delete=CASCADE)
     objects = models.Manager()
-    # stores it in a file called studio images?
 
 
 
 
+class Amenities(models.Model):
+    type = models.CharField(max_length=200)
+    quantity = models.IntegerField(validators=[MinValueValidator(0)])
+    studios = ForeignKey(to=Studio, related_name='amenities', on_delete=CASCADE)
+    objects = models.Manager()
 
 # have to migrate models
 
 
-class Location(models.Model):
-    latitude = models.FloatField(
-        validators=[MinValueValidator(-90), MaxValueValidator(90)])
-    longitude = models.FloatField(
-        validators=[MinValueValidator(-180), MaxValueValidator(180)])
+
