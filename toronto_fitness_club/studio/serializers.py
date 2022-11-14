@@ -19,7 +19,7 @@ class GeoProxStudioByPostalSerializer(serializers.ModelSerializer):
     # in front end these will be separated
     class Meta:
         model = PostalCode
-        fields = ['lat', 'long']
+        fields = ['postal_code']
 
 
 

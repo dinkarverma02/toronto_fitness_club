@@ -67,6 +67,7 @@ class GeoProxStudioByCurrentLocation(APIView):
         long = request.data['current_location_long']
         calculate_proximity(lat, long)
 
+        response = Response()
         response.data = calculate_proximity(lat, long)
         response.status_code = status.HTTP_200_OK
 
@@ -87,11 +88,13 @@ class GeoProxStudioByPostal(APIView):
             # using regex
             # convert postal code to long lat and call calculate_proximity
             #need to validate postal code !!!!!
-            geodata = requests.get(f'https://geocoder.ca/{postal_code}?json=1')
+            geocode_data = requests.get(f'https://geocoder.ca/{postal_code}?json=1')
+            geodata = geocode_data.json()
+
             lat = geodata["latt"]
             long = geodata["longt"]
             calculate_proximity(lat, long)
-
+        response = Response()
         response.data = calculate_proximity(lat, long)
         response.status_code = status.HTTP_200_OK
 
@@ -107,6 +110,7 @@ class GeoProxStudioByPinPoint(APIView):
         long = request.data["pinpoint_long"]
         calculate_proximity(lat, long)
 
+        response = Response()
         response.data = calculate_proximity(lat, long)
         response.status_code = status.HTTP_200_OK
 
