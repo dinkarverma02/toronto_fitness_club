@@ -41,6 +41,22 @@ class Amenities(models.Model):
     studios = ForeignKey(to=Studio, related_name='amenities', on_delete=CASCADE)
     objects = models.Manager()
 
+
+class PinPoint(models.Model):
+    lat = models.FloatField(
+        validators=[MinValueValidator(-90), MaxValueValidator(90)], null=False, blank=False)
+    long = models.FloatField(
+        validators=[MinValueValidator(-180), MaxValueValidator(180)], null=False, blank=False)
+
+class CurrentLocation(models.Model):
+    lat = models.FloatField(
+        validators=[MinValueValidator(-90), MaxValueValidator(90)], null=False, blank=False)
+    long = models.FloatField(
+        validators=[MinValueValidator(-180), MaxValueValidator(180)], null=False, blank=False)
+
+class PostalCode(models.Model):
+
+    postal_code = models.CharField(max_length=200, null=False, blank=False)
 # have to migrate models
 
 
