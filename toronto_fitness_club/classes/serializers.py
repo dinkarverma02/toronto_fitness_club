@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from toronto_fitness_club.classes.models import Classes
+from classes.models import Classes
 
 
 class CreateClassesSerializer(serializers.ModelSerializer):
