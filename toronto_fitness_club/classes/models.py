@@ -1,4 +1,3 @@
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 # Create your models here.
@@ -6,10 +5,10 @@ from django.db import models
 
 class Classes(models.Model):
     name = models.CharField(max_length=200)
-    description = models.CharField()
+    description = models.TextField()
     coach = models.CharField(max_length=200)
-    keywords = ArrayField(models.CharField())
+    keywords = models.CharField(max_length=200)
     capacity = models.IntegerField()
-    times = ArrayField(models.TimeField())
+    times = models.TimeField()
 
 

@@ -5,7 +5,7 @@ from toronto_fitness_club.classes.models import Classes
 from django.views.generic import TemplateView, ListView
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
-from toronto_fitness_club.classes.serializers import CreateClassesSerializer
+from classes.serializers import CreateClassesSerializer
 
 
 # Create your views here.
