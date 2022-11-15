@@ -85,4 +85,14 @@ class GeoProx(models.Model):
     # bank_of_branch.save()
     user_id = models.CharField(max_length=200, null=False, blank=False)
     studio_to_distance = models.ManyToManyField(StudioToDistance)
+    current_lat = models.FloatField(
+        validators=[MinValueValidator(-90), MaxValueValidator(90)], null=False,
+        blank=False)
+    current_long = models.FloatField(
+        validators=[MinValueValidator(-90), MaxValueValidator(90)], null=False,
+        blank=False)
     objects = models.Manager()
+
+
+class ClickStudio(models.Model):
+    studio_user_click_on = models.IntegerField()

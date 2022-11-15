@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from studio.models import Amenities, Location, PostalCode, Studio, \
+from studio.models import Amenities, ClickStudio, Location, PostalCode, Studio, \
     StudioToDistance
 
 
@@ -41,3 +41,9 @@ class StudioSerializer(serializers.ModelSerializer):
         model = StudioToDistance
         fields = ['studio_id', 'studio_name', 'distance_to_studio', 'studio_amenities']
 
+
+class StudioClickOn(serializers.ModelSerializer):
+    # in front end these will be separated
+    class Meta:
+        model = ClickStudio
+        fields = ['studio_user_click_on']
