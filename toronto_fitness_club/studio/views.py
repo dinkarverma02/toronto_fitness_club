@@ -5,13 +5,14 @@ import requests
 
 # use API for studio page
 from geopy import distance
+from rest_framework.generics import ListAPIView
 
 from rest_framework.permissions import IsAuthenticated
 
 # username: thaksha password: water
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
+from rest_framework import filters, status
 
 from studio.models import GeoProx, Studio, StudioToDistance
 
@@ -23,7 +24,7 @@ from studio.models import GeoProx, Studio, StudioToDistance
 # is return with the studio id, link to direction, ..
 from studio.serializers import GeoProxStudioByCurrentLocationSerializer, \
     GeoProxStudioByPinPointSerializer, \
-    GeoProxStudioByPostalSerializer
+    GeoProxStudioByPostalSerializer, StudioSerializer
 
 'https://www.google.com/maps/dir/?api=1&origin={origin_lat},{origin_long}&' \
 'destination={dest_lat},{dest_long}&travelmode=driving'
@@ -51,9 +52,10 @@ def calculate_proximity(lat, long):
         # studio_to_distance.items(), key=lambda item: item[1])}" from
         # https://stackoverflow.com/questions/613183/how-do-i-sort-a
         # -dictionary-by-value
+        # {k: v for k, v in
+        # sorted(studio_to_distance.items(), key=lambda item: item[1])}
 
-    return {k: v for k, v in
-            sorted(studio_to_distance.items(), key=lambda item: item[1])}
+    return studio_to_distance
 
 
 # stores this data of {store id: distance} in database so can filter
@@ -66,22 +68,23 @@ class GeoProxStudioByCurrentLocation(APIView):
         # use this in get and let user pick a studio id they want to see the
         # page of
 
-
         lat = request.data['lat']
         long = request.data['long']
 
         response = Response()
         response.data = calculate_proximity(lat, long)
 
-        # save user to distance to all studio according to given location to database
-        current_user = request.user.id
+        # save user to distance to all studio
+        # according to given location to database
+        current_user = str(request.user.id)
         if GeoProx.objects.filter(id=current_user):
             GeoProx.objects.get(id=current_user).delete()
 
         user_to_studio = GeoProx()
         user_to_studio.user_id = current_user
         user_to_studio.save()
-        print(response.data)
+
+        # { studio_id: distance to user } stored in a not ordered way
         for studio_id in response.data.keys():
             studio_to_distance = StudioToDistance()
             studio_to_distance.studio_id = studio_id
@@ -89,105 +92,51 @@ class GeoProxStudioByCurrentLocation(APIView):
             studio_to_distance.save()
             user_to_studio.studio_to_distance.add(studio_to_distance)
             user_to_studio.save()
-        print(user_to_studio.studio_to_distance.all())
-        for studio in user_to_studio.studio_to_distance.all():
-            print(studio.studio_id)
 
         response.status_code = status.HTTP_200_OK
 
         return response
 
 
-class GeoProxStudioByPostal(APIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = GeoProxStudioByPostalSerializer
+class SearchStudio(ListAPIView):
 
-    def post(self, request, format=None):
-        postal_code = request.data["postal_code"].replace(' ', '%')
-
-        # when convert could lead to error if not a valid postal code,
-        # validate postal code when user enter before its posted maybe
-        # using regex
-        # convert postal code to long lat and call calculate_proximity
-        # need to validate postal code !!!!!
-        geocode_data = requests.get(
-            f'https://geocoder.ca/{postal_code}?json=1')
-        geodata = geocode_data.json()
-
-        lat = geodata["latt"]
-        long = geodata["longt"]
-
-        response = Response()
-        response.data = calculate_proximity(lat, long)
-
-        # save user to distance to all studio according to given location to database
-
-        response.status_code = status.HTTP_200_OK
-
-        return response
-
-
-class GeoProxStudioByPinPoint(APIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = GeoProxStudioByPinPointSerializer
-
-    def post(self, request, format=None):
-        lat = request.data["pinpoint_lat"]
-        long = request.data["pinpoint_long"]
-        calculate_proximity(lat, long)
-
-        # save in database and retrieve last element for this table as that
-        # what user last wanted to find the distance
-        response = Response()
-        response.data = calculate_proximity(lat, long)
-
-        # save user to distance to all studio according to given location to database
-
-
-
-        response.status_code = status.HTTP_200_OK
-
-        return response
-
-
-class FilterStudio(APIView):
-
-    # headers
+    queryset = Studio.objects.all()
+    # pass all studios but list them from
+    # closest to furthest as a query set
+    # studios listed should only have info such as name and amenities
+    # will include class info after...
+    serializer_class = StudioSerializer
+    filter_backends = [filters.SearchFilter]
+    # search includes name and amenities
+    search_fields = ['name', 'amenities__type']
 
     def get(self, request, *args, **kwargs):
+        # list studio from closest to furthest
 
-        prox_user_to_studio = None
-        print(f"request id:{request.user.id}")
-        for user_to_studio in GeoProx.objects.all():
-            if user_to_studio.user_id == str(request.user.id):
-                prox_user_to_studio = user_to_studio
-
-        studio_to_distance = {}
-
-        if prox_user_to_studio is not None:
-            for studio in prox_user_to_studio.studio_to_distance.all():
-               studio_to_distance[studio.studio_id] = studio.distance_to_studio
-
-
-        # source for sorting dictionary code "{k: v for k, v in sorted(
-        # studio_to_distance.items(), key=lambda item: item[1])}" from
-        # https://stackoverflow.com/questions/613183/how-do-i-sort-a
-        # -dictionary-by-value
-
-        studio_to_distance = {k: v for k, v in
-                              sorted(studio_to_distance.items(),
-                                     key=lambda item: item[1])}
         response = Response()
-        response.data = studio_to_distance
+        response.data = OrderStudio(str(request.user.id))
         response.status_code = status.HTTP_200_OK
-
         return response
 
-    def post(self, request, format=None):
-        # filter by name, amenities
-        # after get filter by class name  and coaches -> need nitish code
 
+def OrderStudio(user_id: str):
+    prox_user_to_studio = None
 
-        pass
+    for user_to_studio in GeoProx.objects.all():
+        if user_to_studio.user_id == user_id:
+            prox_user_to_studio = user_to_studio
 
+    studio_to_distance = {}
+    if prox_user_to_studio is not None:
+        for studio in prox_user_to_studio.studio_to_distance.all():
+            studio_to_distance[studio.studio_id] = studio.distance_to_studio
 
+    # source for sorting dictionary code "{k: v for k, v in sorted(
+    # studio_to_distance.items(), key=lambda item: item[1])}" from
+    # https://stackoverflow.com/questions/613183/how-do-i-sort-a
+    # -dictionary-by-value
+
+    studio_to_distance = {k: v for k, v in
+                          sorted(studio_to_distance.items(),
+                                 key=lambda item: item[1])}
+    return studio_to_distance

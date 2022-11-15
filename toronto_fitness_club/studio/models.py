@@ -20,19 +20,20 @@ class Studio(models.Model):
         validators=[MinValueValidator(-90), MaxValueValidator(90)])
     longitude = models.FloatField(
         validators=[MinValueValidator(-180), MaxValueValidator(180)])
-    postal_code = models.CharField(max_length=200,validators=[
-            RegexValidator(
-                regex='^[ABCEGHJKLMNPRSTVXYabceghjklmnprstvxy]{1}[0-9]{1}'
-                      '[ABCEGHJKLMNPRSTVXYabceghjklmnprstvxy]{1}[ ]?[0-9]{1}'
-                      '[ABCEGHJKLMNPRSTVXYabceghjklmnprstvxy]{1}[0-9]{1}$',
-                message='Postal Code is invalid',
-            ),
-        ])
+    postal_code = models.CharField(max_length=200, validators=[
+        RegexValidator(
+            regex='^[ABCEGHJKLMNPRSTVXYabceghjklmnprstvxy]{1}[0-9]{1}'
+                  '[ABCEGHJKLMNPRSTVXYabceghjklmnprstvxy]{1}[ ]?[0-9]{1}'
+                  '[ABCEGHJKLMNPRSTVXYabceghjklmnprstvxy]{1}[0-9]{1}$',
+            message='Postal Code is invalid',
+        ),
+    ])
     phone_number = models.CharField(max_length=200)
+    # need to write a regex
+    # to validate the phone number
     # use add to add images, need to fix because doesn't allow to add
     # multiple files
     # images = models.ForeignKey(Image, )
-
     objects = models.Manager()
 
 
@@ -49,17 +50,11 @@ class Amenities(models.Model):
     studios = ForeignKey(to=Studio, related_name='amenities', on_delete=CASCADE)
     objects = models.Manager()
 
-
-class PinPoint(models.Model):
-    lat = models.FloatField(
-        validators=[MinValueValidator(-90), MaxValueValidator(90)], null=False,
-        blank=False)
-    long = models.FloatField(
-        validators=[MinValueValidator(-180), MaxValueValidator(180)],
-        null=False, blank=False)
+    def __str__(self):
+        return f'{self.type}'
 
 
-class CurrentLocation(models.Model):
+class Location(models.Model):
     lat = models.FloatField(
         validators=[MinValueValidator(-90), MaxValueValidator(90)], null=False,
         blank=False)
@@ -83,8 +78,8 @@ class StudioToDistance(models.Model):
 
 class GeoProx(models.Model):
     # studio's distance to user_id
-    #bank_of_branch.branch.add(new_branch)
-    #bank_of_branch.save()
+    # bank_of_branch.branch.add(new_branch)
+    # bank_of_branch.save()
     user_id = models.CharField(max_length=200, null=False, blank=False)
     studio_to_distance = models.ManyToManyField(StudioToDistance)
     objects = models.Manager()
