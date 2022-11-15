@@ -77,8 +77,10 @@ class GeoProxStudioByCurrentLocation(APIView):
         # save user to distance to all studio
         # according to given location to database
         current_user = str(request.user.id)
-        if GeoProx.objects.filter(id=current_user):
-            GeoProx.objects.get(id=current_user).delete()
+        # delete other call user made to get studio by specific location
+        for instance in GeoProx.objects.all():
+            if instance.user_id == current_user:
+                instance.delete()
 
         user_to_studio = GeoProx()
         user_to_studio.user_id = current_user
@@ -100,7 +102,7 @@ class GeoProxStudioByCurrentLocation(APIView):
 
 class SearchStudio(ListAPIView):
 
-    queryset = Studio.objects.all()
+    # queryset = Studio.objects.all()
     # pass all studios but list them from
     # closest to furthest as a query set
     # studios listed should only have info such as name and amenities
@@ -110,13 +112,20 @@ class SearchStudio(ListAPIView):
     # search includes name and amenities
     search_fields = ['name', 'amenities__type']
 
-    def get(self, request, *args, **kwargs):
-        # list studio from closest to furthest
+    def get_queryset(self):
+        """
+        This view should return a list of all the purchases
+        for the currently authenticated user.
+        """
+        # make query set with studio but they should be listed from closest to furthest
+        # have a model mapping user_id
+        # to studio objects that have name, amenenties, other thing.., distance
+        # when we get the query we will order by distance
+        # the other query set can just store distance from user to each studio
+        # which we can use to get long, lat when we give linke for direction
+        # depending on the studio they clicked.
 
-        response = Response()
-        response.data = OrderStudio(str(request.user.id))
-        response.status_code = status.HTTP_200_OK
-        return response
+        return Studio.objects.order_by('name')
 
 
 def OrderStudio(user_id: str):
