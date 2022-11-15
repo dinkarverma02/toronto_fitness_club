@@ -24,3 +24,4 @@ class StudioAdmin(admin.ModelAdmin):
 admin.site.register(Studio, StudioAdmin)
 admin.site.register(Image)
 admin.site.register(Amenities)
+
