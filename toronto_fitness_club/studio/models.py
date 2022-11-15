@@ -44,6 +44,9 @@ class Image(models.Model):
     studios = ForeignKey(to=Studio, related_name='images', on_delete=CASCADE)
     objects = models.Manager()
 
+    def __str__(self):
+        return f'{self.image.name}'
+
 
 class Amenities(models.Model):
     type = models.CharField(max_length=200)

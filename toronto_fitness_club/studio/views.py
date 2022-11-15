@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import filters, status
 
-from studio.models import Amenities, GeoProx, Studio, StudioToDistance
+from studio.models import Amenities, GeoProx, Image, Studio, StudioToDistance
 
 # return list with studio id ordered from closest to furthest user can go to
 # -> need to store direction to use for link to get direction -> need to
@@ -78,6 +78,12 @@ class GeoProxStudioByCurrentLocation(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = GeoProxStudioByCurrentLocationSerializer
 
+    def get(self, request):
+        response = Response()
+        response.data = {}
+        response.status_code = status.HTTP_200_OK
+        return response
+
     def post(self, request, *args, **kwargs):
         lat = request.data['lat']
         long = request.data['long']
@@ -138,6 +144,13 @@ class SearchStudio(ListCreateAPIView):
         link_to_directions = f'https://www.google.com/maps/dir/?api=1&origin={user_lat},{user_long}&' \
         f'destination={studio.latitude},{studio.longitude}&travelmode=driving'
         studio_info['link_to_directions'] = link_to_directions
+
+        images = []
+        for image in Image.objects.all():
+
+            if str(image.studios.id) == studio_user_clicked_on:
+                images.append(image.image.name)
+        studio_info['images'] = f'{images}'
 
 
         response = Response()
