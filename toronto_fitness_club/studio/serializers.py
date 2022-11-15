@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from studio.models import Amenities, Location, PostalCode, Studio
+from studio.models import Amenities, Location, PostalCode, Studio, \
+    StudioToDistance
 
 
 class GeoProxStudioByPinPointSerializer(serializers.ModelSerializer):
@@ -27,14 +28,16 @@ class GeoProxStudioByPostalSerializer(serializers.ModelSerializer):
 
 
 class StudioSerializer(serializers.ModelSerializer):
-    amenities = serializers.SlugRelatedField(
+
+    studio_amenities = serializers.SlugRelatedField(
         many=True,
         read_only=True,
         slug_field='type'
     )
 
+
     class Meta:
 
-        model = Studio
-        fields = ['name', 'amenities']
+        model = StudioToDistance
+        fields = ['studio_id', 'studio_name', 'distance_to_studio', 'studio_amenities']
 

@@ -6,7 +6,7 @@ from django.contrib import admin
 
 # Create your models here.
 from django.db.models import CASCADE, DecimalField, ForeignKey, ImageField, \
-    OneToOneField, \
+    ManyToManyField, OneToOneField, \
     SET_NULL
 
 
@@ -34,6 +34,7 @@ class Studio(models.Model):
     # use add to add images, need to fix because doesn't allow to add
     # multiple files
     # images = models.ForeignKey(Image, )
+
     objects = models.Manager()
 
 
@@ -71,8 +72,10 @@ class PostalCode(models.Model):
 
 # have to migrate models
 class StudioToDistance(models.Model):
-    studio_id = models.CharField(max_length=200, null=False, blank=False)
-    distance_to_studio = models.FloatField(null=False, blank=False)
+    studio_id = models.CharField(max_length=200)
+    distance_to_studio = models.FloatField()
+    studio_name = models.CharField(max_length=200)
+    studio_amenities = models.ManyToManyField(Amenities)
     objects = models.Manager()
 
 
