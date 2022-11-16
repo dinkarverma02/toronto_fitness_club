@@ -10,11 +10,11 @@ from rest_framework.generics import RetrieveAPIView, ListAPIView, CreateAPIView,
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
 
-from classes.models import Classes, Class, Keyword
+from classes.models import Keyword, Class
 from django.views.generic import TemplateView, ListView
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
-from classes.serializers import CreateClassesSerializer, CreateClassSerializer
+from classes.serializers import CreateClassesSerializer
 
 
 # Create your views here.
@@ -74,12 +74,13 @@ from classes.serializers import CreateClassesSerializer, CreateClassSerializer
 #     return Response(serializer.data)
 
 class ClassesView(ListAPIView):
-    queryset = Classes.objects.all()
+    queryset = Class.objects.all().order_by('start_time')
     serializer_class = CreateClassesSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
 
-class ClassView(ListAPIView):
-    queryset = Class.objects.all()
-    serializer_class = CreateClassSerializer
-    permission_classes = [IsAdminUser]
+
+
+
+
+

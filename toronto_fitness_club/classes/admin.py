@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from classes.models import Classes, Class
+from classes.models import Class
 
 from classes.models import Keyword
 
@@ -11,6 +11,5 @@ class ClassesAdmin(admin.ModelAdmin):
               'day', 'start_time', 'end_time']
 
 
-admin.site.register(Classes)
-admin.site.register(Keyword)
 admin.site.register(Class)
+admin.site.register(Keyword)
