@@ -8,6 +8,7 @@ from rest_framework.generics import CreateAPIView, ListAPIView, \
     ListCreateAPIView
 
 from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
 
 # username: thaksha password: water
 from rest_framework.response import Response
@@ -24,11 +25,15 @@ from studio.models import Amenities, GeoProx, Image, Studio, StudioToDistance
 # is return with the studio id, link to direction, ..
 from studio.serializers import GeoProxStudioByCurrentLocationSerializer, \
     GeoProxStudioByPinPointSerializer, \
-    GeoProxStudioByPostalSerializer, StudioClickOn, StudioSerializer
+    GeoProxStudioByPostalSerializer, OgStudioSerializer, StudioClickOn, \
+    StudioSerializer
 
 'https://www.google.com/maps/dir/?api=1&origin={origin_lat},{origin_long}&' \
 'destination={dest_lat},{dest_long}&travelmode=driving'
 
+# Filter is usually a set of options that you can choose from (like list of
+# amenities or keywords that you choose from, or filter based on availability
+# of a product or price range [not applicable to TFC])
 
 def calculate_proximity(lat, long):
 
@@ -96,9 +101,10 @@ class GeoProxStudioByCurrentLocation(CreateAPIView):
 class SearchStudio(ListCreateAPIView):
 
     serializer_class = StudioSerializer
-    filter_backends = [filters.SearchFilter]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     # search also needs to include 'nitish' stuff
     search_fields = ['studio_name', 'studio_amenities__type']
+    filterset_fields = ['studio_name', 'studio_amenities__type']
 
     def get_queryset(self):
 
@@ -119,9 +125,6 @@ class SearchStudio(ListCreateAPIView):
     def post(self, request, *args, **kwargs):
 
         studio_user_clicked_on = request.data['studio_user_click_on']
-
-        # link to get directions, name, address, amenities, phone number,
-        # location
         geoprox_of_user = GeoProx.objects.filter(
             user_id=str(self.request.user.id)).first()
 
@@ -157,6 +160,15 @@ class SearchStudio(ListCreateAPIView):
         response.data = studio_info
         response.status_code = status.HTTP_200_OK
         return response
+
+class FilterStudio(ListCreateAPIView):
+    queryset = Studio.objects.all()
+    serializer_class = OgStudioSerializer
+    #filter_backends = [DjangoFilterBackend]
+    #filterset_fields = ['name',  'address']
+    filter_fields = (
+        'name'
+    )
 
 
 
