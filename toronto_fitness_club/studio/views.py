@@ -3,6 +3,7 @@ import requests
 # Create your views here.
 
 # use API for studio page
+from django.http import HttpResponseRedirect
 from geopy import distance #doesn't identify it when migrations made
 from rest_framework.generics import CreateAPIView, ListAPIView, \
     ListCreateAPIView
@@ -16,24 +17,12 @@ from rest_framework.views import APIView
 from rest_framework import filters, status
 
 from studio.models import Amenities, GeoProx, Image, Studio, StudioToDistance
-
-# return list with studio id ordered from closest to furthest user can go to
-# -> need to store direction to use for link to get direction -> need to
-# store as will apply filters on this user get a page where they do filter of
-# studios
-# enter the studio page they want to go to, then a respose
-# is return with the studio id, link to direction, ..
 from studio.serializers import GeoProxStudioByCurrentLocationSerializer, \
     GeoProxStudioByPinPointSerializer, \
     GeoProxStudioByPostalSerializer, StudioClickOn, \
     StudioSerializer
 
-'https://www.google.com/maps/dir/?api=1&origin={origin_lat},{origin_long}&' \
-'destination={dest_lat},{dest_long}&travelmode=driving'
 
-# Filter is usually a set of options that you can choose from (like list of
-# amenities or keywords that you choose from, or filter based on availability
-# of a product or price range [not applicable to TFC])
 
 def calculate_proximity(lat, long):
 
@@ -95,7 +84,53 @@ class GeoProxStudioByCurrentLocation(CreateAPIView):
 
         user_to_studio_distance(str(request.user.id), lat, long)
 
-        return self.create(request, *args, **kwargs)
+        return HttpResponseRedirect(redirect_to='http://127.0.0.1:8000/studio/search_studio/')
+class GeoProxStudioByPinPoint(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = GeoProxStudioByPinPointSerializer
+
+    def get(self, request):
+        response = Response()
+        response.data = {}
+        response.status_code = status.HTTP_200_OK
+        return response
+
+    def post(self, request, *args, **kwargs):
+        lat = request.data['lat']
+        long = request.data['long']
+
+        user_to_studio_distance(str(request.user.id), lat, long)
+
+        return HttpResponseRedirect(redirect_to='http://127.0.0.1:8000/studio/search_studio/')
+
+class GeoProxStudioByPostal(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = GeoProxStudioByPostalSerializer
+
+    def get(self, request):
+        response = Response()
+        response.data = {}
+        response.status_code = status.HTTP_200_OK
+        return response
+
+    def post(self, request, *args, **kwargs):
+        postal_code = request.data["postal_code"].replace(' ', '%')
+
+        # when convert could lead to error if not a valid postal code,
+        # validate postal code when user enter before its posted maybe
+        # using regex
+        # convert postal code to long lat and call calculate_proximity
+        # need to validate postal code !!!!!
+        geocode_data = requests.get(
+            f'https://geocoder.ca/{postal_code}?json=1')
+        geodata = geocode_data.json()
+
+        lat = geodata["latt"]
+        long = geodata["longt"]
+
+        user_to_studio_distance(str(request.user.id), lat, long)
+
+        return HttpResponseRedirect(redirect_to='http://127.0.0.1:8000/studio/search_studio/')
 
 
 class SearchStudio(ListCreateAPIView):
