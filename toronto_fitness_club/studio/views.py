@@ -14,7 +14,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 # username: thaksha password: water
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import filters, status
+from rest_framework import filters, response, status
 
 from studio.models import Amenities, GeoProx, Image, Studio, StudioToDistance
 from studio.serializers import GeoProxStudioByCurrentLocationSerializer, \
@@ -162,39 +162,43 @@ class SearchStudio(ListCreateAPIView):
         studio_user_clicked_on = request.data['studio_user_click_on']
         geoprox_of_user = GeoProx.objects.filter(
             user_id=str(self.request.user.id)).first()
+        responsee = Response()
+        responsee.data = {}
+        if geoprox_of_user:
+            user_lat = geoprox_of_user.current_lat
+            user_long = geoprox_of_user.current_long
+            studio_info = {}
+            studio = Studio.objects.all().filter(id=studio_user_clicked_on).first()
 
-        user_lat = geoprox_of_user.current_lat
-        user_long = geoprox_of_user.current_long
-        studio_info = {}
-        studio = Studio.objects.all().filter(id=studio_user_clicked_on).first()
+            studio_info['name'] = studio.name
+            studio_info['address'] = studio.address
+            studio_info['phone_number'] = studio.phone_number
+            studio_info['location'] = f'{studio.latitude}, {studio.longitude}'
 
-        studio_info['name'] = studio.name
-        studio_info['address'] = studio.address
-        studio_info['phone_number'] = studio.phone_number
-        studio_info['location'] = f'{studio.latitude}, {studio.longitude}'
+            amenities = []
+            for amenity in Amenities.objects.all():
 
-        amenities = []
-        for amenity in Amenities.objects.all():
+                if str(amenity.studios.id) == studio_user_clicked_on:
+                    amenities.append(amenity.type)
+            studio_info['amenities'] = f'{amenities}'
+            link_to_directions = f'https://www.google.com/maps/dir/?api=1&origin={user_lat},{user_long}&' \
+            f'destination={studio.latitude},{studio.longitude}&travelmode=driving'
+            studio_info['link_to_directions'] = link_to_directions
 
-            if str(amenity.studios.id) == studio_user_clicked_on:
-                amenities.append(amenity.type)
-        studio_info['amenities'] = f'{amenities}'
-        link_to_directions = f'https://www.google.com/maps/dir/?api=1&origin={user_lat},{user_long}&' \
-        f'destination={studio.latitude},{studio.longitude}&travelmode=driving'
-        studio_info['link_to_directions'] = link_to_directions
+            images = []
+            for image in Image.objects.all():
 
-        images = []
-        for image in Image.objects.all():
+                if str(image.studios.id) == studio_user_clicked_on:
+                    images.append(image.image.name)
+            studio_info['images'] = f'{images}'
 
-            if str(image.studios.id) == studio_user_clicked_on:
-                images.append(image.image.name)
-        studio_info['images'] = f'{images}'
+            responsee.data = studio_info
+            responsee.status_code = status.HTTP_200_OK
+            return responsee
 
-
-        response = Response()
-        response.data = studio_info
-        response.status_code = status.HTTP_200_OK
-        return response
+        return response.Response(
+            {'message': "UNAUTHORIZED"},
+            status=status.HTTP_401_UNAUTHORIZED)
 
 
 
