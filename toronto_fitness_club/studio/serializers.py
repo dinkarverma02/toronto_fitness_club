@@ -26,16 +26,7 @@ class GeoProxStudioByPostalSerializer(serializers.ModelSerializer):
         model = PostalCode
         fields = ['postal_code']
 
-class OgStudioSerializer(serializers.ModelSerializer):
-    amenities = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='type'
-    )
 
-    class Meta:
-        model = Studio
-        fields = ['name', 'amenities', 'address']
 
 class StudioSerializer(serializers.ModelSerializer):
 

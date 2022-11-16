@@ -25,7 +25,7 @@ from studio.models import Amenities, GeoProx, Image, Studio, StudioToDistance
 # is return with the studio id, link to direction, ..
 from studio.serializers import GeoProxStudioByCurrentLocationSerializer, \
     GeoProxStudioByPinPointSerializer, \
-    GeoProxStudioByPostalSerializer, OgStudioSerializer, StudioClickOn, \
+    GeoProxStudioByPostalSerializer, StudioClickOn, \
     StudioSerializer
 
 'https://www.google.com/maps/dir/?api=1&origin={origin_lat},{origin_long}&' \
@@ -161,14 +161,6 @@ class SearchStudio(ListCreateAPIView):
         response.status_code = status.HTTP_200_OK
         return response
 
-class FilterStudio(ListCreateAPIView):
-    queryset = Studio.objects.all()
-    serializer_class = OgStudioSerializer
-    #filter_backends = [DjangoFilterBackend]
-    #filterset_fields = ['name',  'address']
-    filter_fields = (
-        'name'
-    )
 
 
 
